@@ -1,44 +1,97 @@
 #include <iostream>
+#include <iomanip>
 using namespace std;
 const int row = 5;
 const int col = 3;
+const int size = 2;
+
+struct Player{
+	string name;
+	int id;
+	int score = 0;
+	int color; // 0-Green, 1-Yellow, 2-Red
+};
+
 //Admin privillege
-void createPlayBoard(int [][col],int);
-void printPlayBoard(int [][col],int);
+
 void swap(int &a,int &b);
 void changeColor(int menu[][col], int row);
 void inputPosition_Color(int & ,int &, int &, int menu[][col], int row);
 
-//User privilige
+//Player privilige
 
-struct Player{
-	string name;
-	int round;
-	int score;
-	int color; // 0-Green, 1-Yellow, 2-Red
-};
 void playerInfo(Player &);
+void askPlayerName_Color(Player &player);
+void capitalizeName(string &);
+
+//Game
+void printMenu();
+void createPlayBoard(int [][col],int);
+void printPlayBoard(int [][col],int);
+void gamePlay(int menu[][col], int row, Player &player);
+void nimbleFeet(Player players[], int size, int menu[][col], int row);
+void printSummary(Player players[],int size);
+
 int main(){
 	//Create playboard(menu) and show it
-	/*int menu [row][col];
-	createPlayBoard(menu,row);
-	printPlayBoard(menu,row);
-	changeColor(menu,row);
+	int menu [row][col];
+	
+	
+	/*changeColor(menu,row);
 	printPlayBoard(menu,row);*/
 
 	Player player1, player2, player3, player4;
-	player1.name = "   Ngyten  ngoc  minh";
+	Player players[] = {player1 , player2};
+	bool keepPlaying;
+	int choice;
+	printMenu();
+	do {
+		
+		
+		do{
+			cout << "Enter your choice: ";
+			cin >> choice;
+		}while((choice < 1 || choice > 5) && !(isdigit(choice)));
+		
+		switch (choice)
+		{
+			case 1:
+			{
+				createPlayBoard(menu,row);
+				printPlayBoard(menu,row);
+				break;
+			}
+			case 2:
+			{
+				changeColor(menu,row);
+				printPlayBoard(menu,row);
+				break;
+			}
+			case 3:
+			{
+				nimbleFeet(players, size, menu, row);
+				
+				break;
+			}
+			case 4:
+			{
+				printSummary(players, size);
+				break;
+			}
+			case 5:
+				cout << "Thank you. Goodbye.\n";	
+				break;	
+		}		
+		
+	}while(choice != 5);
 	
-	for (int i=0; i < player1.name.length(); ++i){
-		if (player1.name[i] == ' ' && player1.name[i+1] == ' '){
-			player1.name[i] = player1.name[i+1];
-		}
-	}
-	cout << player1.name;
+	
+
+	
 	return 0;
 }
 
-//Admin
+//Admin part
 void changeColor(int menu[][col], int row){
 	int row_pos,col_pos;
 	int color;
@@ -103,8 +156,109 @@ void swap(int &a,int &b){
 	b = c;
 }
 
-void playerInfo(Player &player){
-	cout << "What is your name? ";
+//Player part
+void askPlayerName_Color(Player &player){
+	cin.ignore();
+	cout << "What is your name?";
 	getline(cin,player.name);
 	
+	do {
+		cout << "What color do you choose (0-Green, 1-Yellow, 2-Red)?";
+		cin >> player.color;
+		if (player.color != 0 && player.color != 1 && player.color != 2)
+			cout << "Invalid color.\n";
+	}while(player.color != 0 && player.color != 1 && player.color != 2);
+	capitalizeName(player.name);
 }
+
+void capitalizeName(string &name){
+	bool flag = false;
+	name[0] = toupper(name[0]);
+	for (int i=0; i < name.length();++i){
+		if (isspace(name[i]) && flag == false)
+			flag = true;
+		if (isalpha(name[i]) && flag)
+		{
+			name[i] = toupper(name[i]);
+			flag = false;
+		}
+	}
+}
+//Game play
+void gamePlay(int menu[][col], int row, Player &player){
+		int col_pos, row_pos = 0;
+		bool nextRound;	
+		cout << "\nThe row position is the round you are playing.\n";
+		cout << player.name << endl;
+		do
+		{	
+			do {
+				cout << "Enter the column position for round " << (row_pos+1) << " (0 1 2): ";
+				cin >> col_pos;
+			}while(col_pos != 0 && col_pos != 1 && col_pos != 2);
+			
+			if (menu[row_pos][col_pos] == player.color && row_pos < 5)
+			{
+				cout << "You win round " << row_pos + 1 << endl;
+				nextRound = true;
+				(player.score)++;
+				row_pos++;
+			}else
+			{
+				nextRound = false;
+				cout << "Color not match. You lose.\n";
+				row_pos = 0;
+			}
+		}while(nextRound);	
+}
+
+void nimbleFeet(Player players[], int size, int menu[][col], int row){
+	for (int i=0; i < size;i++){
+		askPlayerName_Color(players[i]);
+		gamePlay(menu, row, players[i]);
+		cin.ignore();
+	}
+}
+
+void printSummary(Player players[],int size)
+{
+	cout << "\n---------------Score board--------------------\n";
+	cout << left<<setw(7) << "Round" << setw(20) << "Ten nguoi choi" << setw(15) << "Mau lua chon" << setw(8) << "Diem so" << endl;
+	for (int i=0; i < size;i++)
+	{
+		cout << left <<setw(7) << i+1 << setw(20) << players[i].name << setw(15) << players[i].color << setw(8) << players[i].score << endl;
+	}
+	//Chua lam duoc min max, gap bugs
+	/*int max = players[0].score, maxIndex;
+	int min = players[0].score, minIndex;
+	for (int i=0; i < size;i++)
+	{
+		if (players[i].score > max){
+			max = players[i].score;
+			maxIndex = i;
+		}
+			
+			
+		else if (players[i].score < min){
+			min = players[i].score;
+			minIndex = i;
+		}
+			
+	}
+	cout << players[maxIndex].name << " has the highest score " << max << " points."<<endl;
+	cout << players[minIndex].name << " has the lowest score " << min << " points."<<endl;*/
+	cout << "----------------------------------------------\n";
+}
+
+void printMenu(){
+	
+	cout << "\nChao mung den voi tro choi hanh khach cuoi cung.\n";
+	cout << "\n---------------Menu-----------------------\n";
+	cout << "1. Create color-game environment." << endl;
+	cout << "2. Change position of color in nimbleFeet." << endl;
+	cout << "3. Playing the game inturn." << endl;
+	cout << "4. Print score table." << endl;
+	cout << "5. Quit game." << endl;
+	
+}
+
